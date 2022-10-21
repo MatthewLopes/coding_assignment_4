@@ -2,10 +2,12 @@
 title: "(PSL) Coding Assignment 4 (Part I)"
 date: "Fall 2022"
 output:
+  pdf_document:
+    toc: yes
   html_notebook:
     theme: readable
-    toc: TRUE
-    toc_float: TRUE
+    toc: yes
+    toc_float: yes
 ---
 
 > Implement the EM algorithm for a $p$-dimensional Gaussian mixture model with $G$ components:
@@ -47,10 +49,38 @@ Estep <- function(data, G, para){
 Mstep <- function(data, G, para, post.prob){ 
   # Your Code
   # Return the updated parameters
+  n = nrow(data)
+  
+  gamma_plus = colSums(post.prob)
+  for(k in 1:G) {
+    para$mean[,k] = t(data) %*% post.prob[,k]  / gamma_plus[k]
+  }
+  
+  S = matrix(0,G,G)
+  
+  for(i in 1:n) {
+    for(k in 1:G){
+      x =c()
+      mu = c()
+      for (l in 1:dim(data[1,])[2]){
+        x = c(x,data[i,l])
+        mu = c(mu,as.numeric(para$mean[l,k]))
+      }
+      S = S + post.prob[i,k] * outer(x - mu, x - mu)
+    }
+  }
+  
+  para$Sigma = S/n
+    
+  para$prob = gamma_plus / n
+  return(para)
   }
 
 loglik <- function(data, G, para){
 	# compute loglikelihood
+  
+  
+  
 }
 
 myEM <- function(data, itmax, G, para){
@@ -130,7 +160,7 @@ para0
 * Output from `myEM`
 
 ```{r}
-myEM(data=faithful, itmax=20, G=K, para=para0)
+myEM(data=faithful, itmax=20, G=G, para=para0)
 ```
 
 * Output from `mclust`
@@ -200,5 +230,14 @@ g(p_{1:G}, \mu_{1:G}, \Sigma) = & \mathbb{E} \log \prod_{i=1}^n  p(x_i, Z_i \mid
 where the last step is due to the fact that $\mathbb{E} [ \mathbb{1}_{\{Z_i = k \}}] = \mathbb{P}(Z_i = k) = p_{ik}.$
 
 5. Derivation and the updating formulas for $p_{1:G}, \mu_{1:G}, \Sigma$ at the M-step.
+
+
+
+### Part 2 
+
+
+
+
+
 
 

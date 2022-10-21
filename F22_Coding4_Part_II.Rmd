@@ -24,6 +24,7 @@ myBW = function(x, para, n.iter = 100){
   
   for(i in 1:n.iter){
     para = BW.onestep(x, para)
+    break
   }
   return(para)
 }
@@ -50,20 +51,46 @@ BW.onestep = function(x, para){
   w = para$w
   alp = forward.prob(x, para)
   beta = backward.prob(x, para)
-  
+  ##
+  # print(dim(beta))
+  # print(dim(alp))
+  ##
   myGamma = array(0, dim=c(mz, mz, T-1))
+  
+  # print(alp)
+  # print(A)
+  print(beta)
+  print(alp)
   #######################################
   ## YOUR CODE: 
   ## Compute gamma_t(i,j) P(Z[t] = i, Z[t+1]=j), 
   ## for t=1:T-1, i=1:mz, j=1:mz, 
   ## which are stored in an array, myGamma
   #######################################
+  
+  
+  
+  for(t in 1:T-1){
+    for(i in 1:mz){
+      for(j in 1:mz){ ##HOW TO account for T and T+1 for beta and alpha
+        # print(j)
+        # print(t+1)
+        myGamma[i,j,t] = alp[t,i]*A[i,j]*B[j,x[t+1]]*beta[t+1,j]
+        # print(alp[t,i])
+        # print(myGamma[i,j,t])
+      }
+    }
+  }
+  
+  # print(myGamma)
+  
 
   # M-step for parameter A
   #######################################
   ## YOUR CODE: 
   ## A = ....
   #######################################
+  # A = sum()
   
   # M-step for parameter B
   #######################################
@@ -166,7 +193,7 @@ myViterbi = function(x, para){
 Try your code on the data provided on Campuswire. You can (i) use the initial values specified below or (ii) use your own initial values. For the latter, remember to set the seed as the last four digits of your UIN. 
 
 ```{r, eval = FALSE}
-data = scan("coding4_part2_data.txt")
+data = scan("./data/coding4_part2_data.txt")
 
 mz = 2
 mx = 3
@@ -176,7 +203,12 @@ ini.B = matrix(1:6, 2, 3); ini.B = ini.B / rowSums(ini.B)
 ini.para = list(mz = 2, mx = 3, w = ini.w,
                 A = ini.A, B = ini.B)
 
+set.seed(1852)
 myout = myBW(data, ini.para, n.iter = 100)
+```
+
+```{r}
+
 myout.Z = myViterbi(data, myout)
 myout.Z[myout.Z==1] = 'A'
 myout.Z[myout.Z==2] = 'B'
