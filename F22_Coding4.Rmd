@@ -27,10 +27,11 @@ a function to evaluate the loglikelihood; call that function after you finish th
 ```{r}
 
 Multivariate_Gauss_PDF <- function(x,mu,sigma){
+  x = as.matrix(x)
   k = length(mu)
   constant=(2*pi)^(-k/2)*(det(sigma)^(-.5))
-  x_minus_mu = c((x-mu)[1,1] ,(x-mu)[1,2] );
-  constant*(-.5*(x_minus_mu)%*%solve(sigma)%*%(x_minus_mu))
+  x_minus_mu = t(x-mu)
+  constant*exp(-.5*t(x_minus_mu)%*%solve(sigma)%*%(x_minus_mu))
 }
 Estep <- function(data, G, para){
   # Your Code
