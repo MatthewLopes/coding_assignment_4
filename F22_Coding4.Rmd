@@ -67,7 +67,8 @@ Mstep <- function(data, G, para, post.prob){
         x = c(x,data[i,l])
         mu = c(mu,as.numeric(para$mean[l,k]))
       }
-      S = S + post.prob[i,k] * outer(x - mu, x - mu)
+      x_minus_mu = (x-mu)
+      S = S + post.prob[i,k] * outer(x_minus_mu, x_minus_mu)
     }
   }
   
@@ -80,8 +81,15 @@ Mstep <- function(data, G, para, post.prob){
 loglik <- function(data, G, para){
 	# compute loglikelihood
   
-  
-  
+  A = matrix(0,nrow(data),G)
+  for(k in 1:G){
+    A[,k] = para$prob[k]
+    for(i in 1:nrow(data)){
+      A[i,k] = A[i,k] * Multivariate_Gauss_PDF(data[i,],para$mean[,k],para$Sigma)
+    }
+  }
+  tmp = rowSums(A)
+  sum(log(tmp))
 }
 
 myEM <- function(data, itmax, G, para){
@@ -139,7 +147,7 @@ We **initialize** parameters by first randomly assigning the $n$ samples into tw
 ```{r}
 n <- nrow(faithful)
 G <- 2
-set.seed(234)  # replace 234 by the last 4-dig of your University ID
+set.seed(1852)  # replace 234 by the last 4-dig of your University ID
 gID <- sample(1:G, n, replace = TRUE)
 Z <- matrix(0, n, G)
 for(k in 1:G)
@@ -179,6 +187,34 @@ list(prob = Rout$para$pro, mean = Rout$para$mean,
 
 Similarly, set $G=3$, then compare the result returned by `myEM` and the one returned by the em algorithm from `mclust` after 20 iterations.
 
+
+```{r}
+n <- nrow(faithful)
+G <- 3
+gID <- sample(1:G, n, replace = TRUE)
+Z <- matrix(0, n, G)
+for(k in 1:G)
+  Z[gID == k, k] <- 1 
+ini0 <- mstep(modelName="EEE", faithful , Z)$parameters
+para0 <- list(prob = ini0$pro, 
+              mean = ini0$mean, 
+              Sigma = ini0$variance$Sigma, 
+              loglik = NULL)
+```
+
+
+```{r}
+myEM(data=faithful, itmax=20, G=G, para=para0)
+```
+
+```{r}
+Rout <- em(modelName = "EEE", data = faithful,
+           control = emControl(eps=0, tol=0, itmax = 20), 
+           parameters = ini0)
+list(prob = Rout$para$pro, mean = Rout$para$mean, 
+     Sigma = Rout$para$variance$Sigma, 
+     loglik = Rout$loglik)
+```
 ## Derivation
 
 Partial results for the required expressions are given below. 
