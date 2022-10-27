@@ -38,11 +38,16 @@ Estep <- function(data, G, para){
   # Return the n-by-G probability matrix
     solution = matrix(0, nrow(data), G)
     for(i in 1:nrow(data)){
-      a =  para$prob[1]*Multivariate_Gauss_PDF(data[i,],para$mean[,1],para$Sigma );
-      
-      b = para$prob[2]*Multivariate_Gauss_PDF(data[i,],para$mean[,2],para$Sigma );
-      solution[i,1] = a / (a + b)
-      solution[i,2] = 1 - solution[i,1]
+      for(j in 1:G){
+        solution[i,j] =  para$prob[j]*Multivariate_Gauss_PDF(data[i,],para$mean[,j],para$Sigma );
+      }
+      denom = 0
+      for(j in 1:G) {
+        denom = denom + solution[i,j]
+      }
+      for(j in 1:G){
+        solution[i,j] = solution[i,j] / denom
+      }
     }
     return(solution)
   }
@@ -57,13 +62,13 @@ Mstep <- function(data, G, para, post.prob){
     para$mean[,k] = t(data) %*% post.prob[,k]  / gamma_plus[k]
   }
   
-  S = matrix(0,G,G)
+  S = matrix(0,dim(data)[2],dim(data)[2])
   
   for(i in 1:n) {
     for(k in 1:G){
       x =c()
       mu = c()
-      for (l in 1:dim(data[1,])[2]){
+      for (l in 1:dim(data)[2]){
         x = c(x,data[i,l])
         mu = c(mu,as.numeric(para$mean[l,k]))
       }
