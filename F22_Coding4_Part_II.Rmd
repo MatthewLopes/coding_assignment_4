@@ -15,7 +15,7 @@ The Baum-Welch  Algorihtm is the EM algorithm for HMM. You should prepare a func
 
 **Note that We do not update w.**
 
-```{r eval=FALSE}
+```{r}
 myBW = function(x, para, n.iter = 100){
   # Input:
   # x: T-by-1 observation sequence
@@ -32,7 +32,7 @@ myBW = function(x, para, n.iter = 100){
 
 Your function `BW.onestep`, in which we operate the E-step and M-step for one iteration, should look as follows. 
 
-```{r eval=FALSE}
+```{r}
 BW.onestep = function(x, para){
   # Input: 
   # x: T-by-1 observation sequence
@@ -59,8 +59,8 @@ BW.onestep = function(x, para){
   
   # print(alp)
   # print(A)
-  print(beta)
-  print(alp)
+  #print(beta)
+  #print(alp)
   #######################################
   ## YOUR CODE: 
   ## Compute gamma_t(i,j) P(Z[t] = i, Z[t+1]=j), 
@@ -70,7 +70,7 @@ BW.onestep = function(x, para){
   
   
   
-  for(t in 1:T-1){
+  for(t in 1:(T-1)){
     for(i in 1:mz){
       for(j in 1:mz){ ##HOW TO account for T and T+1 for beta and alpha
         # print(j)
@@ -80,23 +80,68 @@ BW.onestep = function(x, para){
         # print(myGamma[i,j,t])
       }
     }
+    denom = matrix(0,(T-1),1)
+    for(t in 1:(T-1)){
+      for(i in 1:mz){
+        for(j in 1:mz){
+          denom[t,1] = denom[t,1] + myGamma[i,j,t]
+        }
+      }
+    }
+    
+    for(t in 1:(T-1)){
+      for(i in 1:mz){
+        for(j in 1:mz){
+          myGamma[i,j,t] = myGamma[i,j,t] / denom[t,1]
+        }
+      }
+    }
   }
   
-  # print(myGamma)
+  gamma_plus = matrix(0,mz,mz)
+  for(t in 1:(T-1)){
+     for(i in 1:mz){
+        for(j in 1:mz){
+          gamma_plus[i,j] = myGamma[i,j,t]
+        }
+    }
+  }
   
-
+  marginal_gamma = matrix(0, mz, T-1)
+  for(t in 1:(T-1)){
+     for(i in 1:mz){
+        for(j in 1:mz){
+          marginal_gamma[i,t] = myGamma[i,j,t]
+        }
+    }
+  }
+  
+  marginal_gamma_marginalized_over_t = rowSums(marginal_gamma)
+  
   # M-step for parameter A
   #######################################
   ## YOUR CODE: 
   ## A = ....
   #######################################
   # A = sum()
+  A = gamma_plus / rowSums(gamma_plus)
   
   # M-step for parameter B
   #######################################
   ## YOUR CODE: 
   ## B = ....
   #######################################
+  for(i in 1:mz){
+    for (l in 1:mx){
+      B[i,l] = 0
+      for(t in 1:(T-1)){
+        if(x[t] == l){
+          B[i,l] = B[i,l] + marginal_gamma[i,t]
+        }
+      }
+      B[i,l] = B[i,l] / marginal_gamma_marginalized_over_t[i]
+    }
+  }
   
   para$A = A
   para$B = B
@@ -106,7 +151,7 @@ BW.onestep = function(x, para){
 
 You can compute the forward and backward probabilities using the following functions.
 
-```{r eval=FALSE}
+```{r}
 forward.prob = function(x, para){
   # Output the forward probability matrix alp 
   # alp: T by mz, (t, i) entry = P(x_{1:t}, Z_t = i)
@@ -151,7 +196,7 @@ backward.prob = function(x, para){
 
 The Viterbi algorihtm returns the most probable latent sequence given the data and the MLE of parameters. 
 
-```{r eval=FALSE}
+```{r}
 myViterbi = function(x, para){
   # Output: most likely sequence of Z (T-by-1)
   T = length(x)
@@ -192,7 +237,7 @@ myViterbi = function(x, para){
 ### Your result
 Try your code on the data provided on Campuswire. You can (i) use the initial values specified below or (ii) use your own initial values. For the latter, remember to set the seed as the last four digits of your UIN. 
 
-```{r, eval = FALSE}
+```{r}
 data = scan("./data/coding4_part2_data.txt")
 
 mz = 2
