@@ -77,8 +77,9 @@ BW.onestep = function(x, para){
     }
   }
   
-  # print(dim(myGamma[,,1]))
   #mz by mz
+  # getting the gamma plus values needed for A equation on slide 14
+  
   gamma_plus = matrix(0,mz,mz)
 
   for (i in 1:(T-1)){
@@ -91,7 +92,7 @@ BW.onestep = function(x, para){
   ## YOUR CODE: 
   ## A = ....
   #######################################
-  A = gamma_plus/rowSums(gamma_plus)
+  A = gamma_plus/rowSums(gamma_plus) 
  
 
   # M-step for parameter B
@@ -100,19 +101,16 @@ BW.onestep = function(x, para){
   ## B = ....
   #######################################
   
-  #   arr = array(0, dim=c(3, 3))
-# > for(k in 1:3){
-# +     print(rowSums(c[,,k]))
-# +     x = as.array(rowSums(c[,,k]))
-# +     arr[k,] = x
-# + }
+  
+  
+  ## getting the gamma is from the equation on slide 12
   
   yt_i = array(0,dim=c((T-1),mz))
   for(k in 1:(T-1)){
     yt_i[k,] = as.array(rowSums(myGamma[,,k]))
   }
   
-  # print(yt_i)
+
   
   B = matrix(0,mz,mx)
   
@@ -120,14 +118,18 @@ BW.onestep = function(x, para){
     for (i in 1:mz){
       numerator = 0
       
+      # if x[t] is equal to l, add to the numberator sum
+      
       for(t in 1:(T-1)){
         if(x[t]==l){
           numerator = numerator + yt_i[t,i]
         }
       }
       
+      #sum the yt(i) over all T's
       denom = sum(yt_i[,i])
    
+      #get the B value from numerator over denominator
       B[i,l] = numerator/denom 
     }
   }
@@ -208,6 +210,21 @@ myViterbi = function(x, para){
   ## Recursively compute the remaining rows of delta
   #######################################
   
+  for(t in 2:T){
+    
+    #finding the max index j for this equation
+    j_max = -Inf
+    j_index = 1
+    
+    for(j in 1:mz){
+      if (max((delta[t-1,j] + log(A[j,]))) > j_max){
+        j_max = max((delta[t-1,j] + log(A[j,]))) #NOT SURE IF MAX LOGIC IS RIGHT
+        j_index = j
+      }
+    }
+    delta[t,] = j_max + log.A[j_index, ] + log.B[, x[t]]
+  }
+  
   # Compute the most prob sequence Z
   Z = rep(0, T)
   # start with the last entry of Z
@@ -217,6 +234,14 @@ myViterbi = function(x, para){
   ## YOUR CODE: 
   ## Recursively compute the remaining entries of Z
   #######################################
+  
+ 
+  print(delta)
+  for(t in (T-1):1){
+    # print(log.A[,Z[(t+1)]])
+    Z[t]=which.max(delta[t, ] + log.A[,Z[(t+1)]])
+  }
+  print(Z)
   
   return(Z)
 }
@@ -242,12 +267,7 @@ set.seed(1852)
 myout = myBW(data, ini.para, n.iter = 100)
 ```
 
-```{r}
 
-myout.Z = myViterbi(data, myout)
-myout.Z[myout.Z==1] = 'A'
-myout.Z[myout.Z==2] = 'B'
-```
 
 ### Result from `HMM`
 Call R package `HMM`
@@ -259,8 +279,25 @@ hmm0 =initHMM(c("A", "B"), c(1, 2, 3),
               transProbs = ini.A, 
               emissionProbs = ini.B)
 Rout = baumWelch(hmm0, data, maxIterations=100, delta=1E-9, pseudoCount=0)
+
 Rout.Z = viterbi(Rout$hmm, data)
 ```
+
+```{r}
+# myout.Z = myViterbi(data, myout)
+
+# mz = 2
+# mx = 3
+# w = Rout$hmm$startProbs
+# A = Rout$hmm$transProbs
+# B = Rout$hmm$emissionProbs
+
+
+myout.Z = myViterbi(data, list(mz = 2,mx = 3,w = Rout$hmm$startProbs,A = Rout$hmm$transProbs,B = Rout$hmm$emissionProbs))
+myout.Z[myout.Z==1] = 'A'
+myout.Z[myout.Z==2] = 'B'
+```
+
 
 ### Compare two results
 
