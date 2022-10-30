@@ -212,19 +212,23 @@ myViterbi = function(x, para){
   ## Recursively compute the remaining rows of delta
   #######################################
   
+
+  
   for(t in 2:T){
     
     #finding the max index j for this equation
     j_max = -Inf
     j_index = 1
     
-    for(j in 1:mz){
-      if (max((delta[t-1,j] + log(A[j,]))) > j_max){
-        j_max = max((delta[t-1,j] + log(A[j,]))) #NOT SURE IF MAX LOGIC IS RIGHT
-        j_index = j
+    for(i in 1:mz){
+      for(j in 1:mz){
+        if ( delta[(t-1),j] + log(A[j,i]) > j_max){
+          j_max = delta[(t-1),j] + log(A[j,i]) 
+          j_index = j
+        }
       }
+      delta[t,i] = j_max + log.B[i, x[t]]
     }
-    delta[t,] = j_max + log.A[j_index, ] + log.B[, x[t]]
   }
   
   # Compute the most prob sequence Z
@@ -237,13 +241,9 @@ myViterbi = function(x, para){
   ## Recursively compute the remaining entries of Z
   #######################################
   
- 
-  print(delta)
   for(t in (T-1):1){
-    # print(log.A[,Z[(t+1)]])
     Z[t]=which.max(delta[t, ] + log.A[,Z[(t+1)]])
   }
-  print(Z)
   
   return(Z)
 }
@@ -286,7 +286,7 @@ Rout.Z = viterbi(Rout$hmm, data)
 ```
 
 ```{r}
-# myout.Z = myViterbi(data, myout)
+myout.Z = myViterbi(data, myout)
 
 # mz = 2
 # mx = 3
@@ -294,8 +294,8 @@ Rout.Z = viterbi(Rout$hmm, data)
 # A = Rout$hmm$transProbs
 # B = Rout$hmm$emissionProbs
 
-
-myout.Z = myViterbi(data, list(mz = 2,mx = 3,w = Rout$hmm$startProbs,A = Rout$hmm$transProbs,B = Rout$hmm$emissionProbs))
+# 
+# myout.Z = myViterbi(data, list(mz = 2,mx = 3,w = Rout$hmm$startProbs,A = Rout$hmm$transProbs,B = Rout$hmm$emissionProbs))
 myout.Z[myout.Z==1] = 'A'
 myout.Z[myout.Z==2] = 'B'
 ```
