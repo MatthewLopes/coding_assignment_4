@@ -105,10 +105,12 @@ BW.onestep = function(x, para){
   
   ## getting the gamma is from the equation on slide 12
   
-  yt_i = array(0,dim=c((T-1),mz))
+  yt_i = array(0,dim=c(T,mz))
   for(k in 1:(T-1)){
     yt_i[k,] = as.array(rowSums(myGamma[,,k]))
   }
+  
+  yt_i[T,] = as.array(colSums(myGamma[,,(T-1)]))  #SUM of yt-1(j,i)
   
 
   
@@ -118,9 +120,9 @@ BW.onestep = function(x, para){
     for (i in 1:mz){
       numerator = 0
       
-      # if x[t] is equal to l, add to the numberator sum
+      # if x[t] is equal to l, add to the numerator sum
       
-      for(t in 1:(T-1)){
+      for(t in 1:T){
         if(x[t]==l){
           numerator = numerator + yt_i[t,i]
         }
